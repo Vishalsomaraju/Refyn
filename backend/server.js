@@ -11,13 +11,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({ 
-  origin: [
-    "https://refyn-rawstxck.vercel.app", 
-    "http://localhost:5173",
-    "http://localhost:3000"
-  ] 
-}));
+app.use(cors({ origin: "*" })); // Permissive CORS for hackathon deployment
 app.use(express.json({ limit: "10mb" }));
 
 app.use("/api/analyze", (req, res, next) => {
