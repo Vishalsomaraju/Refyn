@@ -14,7 +14,7 @@ export default function TopNav({ activeMode, onModeChange, isDark, onThemeToggle
 
   useEffect(() => {
     if (username) {
-      fetch(`http://localhost:5000/api/memory/${username}`)
+      fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/memory/${username}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.data) {

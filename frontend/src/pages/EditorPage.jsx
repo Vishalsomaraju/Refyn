@@ -195,7 +195,7 @@ export default function EditorPage() {
     setRunResult(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/execute', {
+      const res = await fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/execute`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ code, language, stdin: '', offline: routingMode === 'offline' })
@@ -239,7 +239,7 @@ export default function EditorPage() {
     const liveCode = editorRef.current.getModel()?.getValue() || '';
     console.log('[ApplyFix] calling smartfix for:', issue.title);
 
-    const res = await fetch('http://localhost:5000/api/smartfix', {
+    const res = await fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/smartfix`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

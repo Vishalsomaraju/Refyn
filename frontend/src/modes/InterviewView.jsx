@@ -47,7 +47,7 @@ export default function InterviewView() {
   const generateProblem = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/chat', {
+      const res = await fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,7 +111,7 @@ Respond in EXACTLY this JSON format (no markdown, no code blocks, just raw JSON)
   const submitSolution = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/chat', {
+      const res = await fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

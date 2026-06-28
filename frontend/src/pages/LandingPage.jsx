@@ -29,7 +29,7 @@ export default function LandingPage() {
       return;
     }
     const timer = setTimeout(() => {
-      fetch(`http://localhost:5000/api/memory/${username}`)
+      fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/memory/${username}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
