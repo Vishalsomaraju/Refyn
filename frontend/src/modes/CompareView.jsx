@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Scale, Zap, Loader2, AlertCircle } from 'lucide-react';
 
 const LANGUAGES = ['python', 'javascript', 'typescript', 'java', 'cpp', 'go', 'ruby', 'sql'];
 
@@ -48,10 +49,10 @@ Use markdown formatting. Be concise but thorough.`
       if (data.success) {
         setComparison(data.data.reply);
       } else {
-        setComparison('❌ Failed to compare. Please try again.');
+        setComparison('Failed to compare. Please try again.');
       }
     } catch (err) {
-      setComparison('❌ Error: ' + err.message);
+      setComparison('Error: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,9 @@ Use markdown formatting. Be concise but thorough.`
         display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px',
         borderBottom: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0,
       }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>⚖️ Compare Code</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
+          <Scale size={16} color="var(--accent)" /> Compare Code
+        </div>
         <select
           value={language}
           onChange={e => setLanguage(e.target.value)}
@@ -72,6 +75,7 @@ Use markdown formatting. Be concise but thorough.`
             padding: '4px 10px', fontSize: 12, borderRadius: 6,
             background: 'var(--surface-high)', color: 'var(--text)',
             border: '1px solid var(--border)', cursor: 'pointer',
+            outline: 'none'
           }}
         >
           {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
@@ -81,22 +85,35 @@ Use markdown formatting. Be concise but thorough.`
           onClick={handleCompare}
           disabled={loading}
           style={{
+            display: 'flex', alignItems: 'center', gap: 6,
             padding: '6px 20px', fontSize: 13, fontWeight: 600, borderRadius: 8,
             background: loading ? 'var(--surface-high)' : 'var(--accent)',
-            color: '#fff', border: 'none', cursor: loading ? 'wait' : 'pointer',
+            color: loading ? 'var(--text-muted)' : '#fff', border: 'none', cursor: loading ? 'wait' : 'pointer',
             transition: 'all 150ms',
           }}
         >
-          {loading ? '⏳ Comparing…' : '⚡ Compare'}
+          {loading ? (
+            <>
+              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ display: 'flex' }}>
+                <Loader2 size={14} />
+              </motion.div>
+              Comparing…
+            </>
+          ) : (
+            <>
+              <Zap size={14} />
+              Compare
+            </>
+          )}
         </button>
       </div>
 
       {/* Editors side by side */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+      <div style={{ flex: 1, display: 'flex', minHeight: 0, background: 'var(--bg)' }}>
         {/* Left editor */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border)' }}>
           <div style={{
-            padding: '6px 12px', fontSize: 11, fontWeight: 600, color: 'var(--accent)',
+            padding: '8px 16px', fontSize: 11, fontWeight: 600, color: 'var(--accent)',
             background: 'var(--surface)', borderBottom: '1px solid var(--border)',
             letterSpacing: '0.05em', textTransform: 'uppercase',
           }}>
@@ -111,7 +128,7 @@ Use markdown formatting. Be concise but thorough.`
               theme="vs-dark"
               options={{
                 fontSize: 13, minimap: { enabled: false },
-                scrollBeyondLastLine: false, padding: { top: 10 },
+                scrollBeyondLastLine: false, padding: { top: 12 },
                 fontFamily: "'JetBrains Mono', monospace",
               }}
             />
@@ -121,7 +138,7 @@ Use markdown formatting. Be concise but thorough.`
         {/* Right editor */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <div style={{
-            padding: '6px 12px', fontSize: 11, fontWeight: 600, color: '#22c55e',
+            padding: '8px 16px', fontSize: 11, fontWeight: 600, color: '#22c55e',
             background: 'var(--surface)', borderBottom: '1px solid var(--border)',
             letterSpacing: '0.05em', textTransform: 'uppercase',
           }}>
@@ -136,7 +153,7 @@ Use markdown formatting. Be concise but thorough.`
               theme="vs-dark"
               options={{
                 fontSize: 13, minimap: { enabled: false },
-                scrollBeyondLastLine: false, padding: { top: 10 },
+                scrollBeyondLastLine: false, padding: { top: 12 },
                 fontFamily: "'JetBrains Mono', monospace",
               }}
             />
@@ -149,7 +166,7 @@ Use markdown formatting. Be concise but thorough.`
         {(comparison || loading) && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 220, opacity: 1 }}
+            animate={{ height: 260, opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
             style={{
@@ -157,16 +174,24 @@ Use markdown formatting. Be concise but thorough.`
               overflow: 'auto', flexShrink: 0,
             }}
           >
-            <div style={{ padding: '14px 20px', fontSize: 13, lineHeight: 1.7, color: 'var(--text)' }}>
+            <div style={{ padding: '16px 20px', fontSize: 13.5, lineHeight: 1.7, color: 'var(--text)' }}>
               {loading ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-muted)' }}>
-                  <span style={{ animation: 'bounceDot 1.4s infinite' }}>●</span>
-                  <span style={{ animation: 'bounceDot 1.4s 0.2s infinite' }}>●</span>
-                  <span style={{ animation: 'bounceDot 1.4s 0.4s infinite' }}>●</span>
-                  <span style={{ marginLeft: 8 }}>AI is analyzing both snippets…</span>
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ display: 'flex' }}>
+                    <Loader2 size={16} />
+                  </motion.div>
+                  <span>AI is analyzing both snippets…</span>
                 </div>
               ) : (
-                <div style={{ whiteSpace: 'pre-wrap' }}>{comparison}</div>
+                <div style={{ whiteSpace: 'pre-wrap' }}>
+                  {comparison.startsWith('Error') || comparison.startsWith('Failed') ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ef4444' }}>
+                      <AlertCircle size={16} /> {comparison}
+                    </div>
+                  ) : (
+                    comparison
+                  )}
+                </div>
               )}
             </div>
           </motion.div>

@@ -17,9 +17,9 @@ export default function TopNav({ activeMode, onModeChange, isDark, onThemeToggle
       fetch(`http://localhost:5000/api/memory/${username}`)
         .then(res => res.json())
         .then(data => {
-          if (data && data.patterns) setMemoryCount(data.patterns.length);
-          else if (Array.isArray(data)) setMemoryCount(data.length);
-          else if (data && data.totalMemories !== undefined) setMemoryCount(data.totalMemories);
+          if (data.success && data.data) {
+            setMemoryCount(data.data.totalMemories || 0);
+          }
         })
         .catch(() => {});
     }

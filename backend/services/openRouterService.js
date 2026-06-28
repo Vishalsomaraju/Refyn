@@ -10,9 +10,10 @@ const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
 
 // Free models on OpenRouter (no credit required)
 const FREE_MODELS = [
+  "openrouter/free", // Auto-routes to an available free model
+  "poolside/laguna-m.1:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   "qwen/qwen3-coder:free",
-  "nousresearch/hermes-3-llama-3.1-405b:free",
   "google/gemma-4-31b-it:free"
 ];
 
