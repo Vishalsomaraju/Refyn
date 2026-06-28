@@ -8,6 +8,9 @@
 ![Hindsight](https://img.shields.io/badge/Hindsight-Memory-8b5cf6?style=for-the-badge)
 ![CascadeFlow](https://img.shields.io/badge/CascadeFlow-Routing-ef4444?style=for-the-badge)
 
+**Live Demo:** [https://refyn-rawstxck.vercel.app](https://refyn-rawstxck.vercel.app)
+**Backend API:** [https://refyn-production-5a6b.up.railway.app](https://refyn-production-5a6b.up.railway.app)
+
 Refyn is a browser-based, VS Code-style IDE designed for instant, AI-powered code reviews and execution. Built for the Hindsight x CascadeFlow Hackathon, it intelligently routes code analysis requests based on complexity—sending simple functions to fast, cheap models while reserving powerful LLMs for complex or security-sensitive code. By integrating persistent memory, Refyn remembers your coding patterns and recurring issues across sessions, ensuring reviews become smarter and highly personalized over time.
 
 ## Architecture
