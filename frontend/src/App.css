@@ -1,0 +1,55 @@
+@import "@vscode/codicons/dist/codicon.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "Consolas", "Courier New", monospace;
+  overflow: hidden;
+}
+
+/* ─── Monaco decoration classes ─── */
+.line-highlight-critical {
+  background: rgba(244, 71, 71, 0.1) !important;
+}
+.line-highlight-warning {
+  background: rgba(204, 167, 0, 0.08) !important;
+}
+.glyph-critical {
+  background: transparent;
+}
+.glyph-critical::before {
+  content: "\eb99"; /* codicon-error */
+  font-family: "codicon";
+  color: #f44747;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.glyph-warning {
+  background: transparent;
+}
+.glyph-warning::before {
+  content: "\ea6c"; /* codicon-warning */
+  font-family: "codicon";
+  color: #cca700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* Smart Fix green flash animation */
+.line-highlight-applied {
+  background: rgba(78, 201, 176, 0.18) !important;
+  transition: background 0.3s ease;
+}
