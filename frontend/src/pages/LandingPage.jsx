@@ -285,20 +285,23 @@ function FloatingIcon({ icon, size, x, y, delay, color, mPos, speed }) {
     >
       <motion.div
         animate={{
-          y: [0, -15, 0],
           x: mPos.x * speed,
-          y: (mPos.y * speed) + [0, -15, 0][0] // simplistic parallax merge
+          y: mPos.y * speed
         }}
         transition={{
-          y: { repeat: Infinity, duration: 4 + Math.random() * 2, ease: "easeInOut" },
-          x: { type: "spring", damping: 50 },
+          type: "spring", damping: 50
         }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}
       >
-        {/* Render icon with forced size */}
-        <div style={{ transform: `scale(${size/24})` }}>
-          {icon}
-        </div>
+        <motion.div
+          animate={{ y: [0, -15, 0] }}
+          transition={{ repeat: Infinity, duration: 4 + Math.random() * 2, ease: "easeInOut" }}
+        >
+          {/* Render icon with forced size */}
+          <div style={{ transform: `scale(${size/24})` }}>
+            {icon}
+          </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
