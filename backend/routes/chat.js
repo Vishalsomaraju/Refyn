@@ -1,5 +1,5 @@
 import express from "express";
-import { chatWithGemini } from "../services/geminiService.js";
+
 import { chatWithGroq, chatWithMixtral } from "../services/groqService.js";
 import { chatWithOllama } from "../services/ollamaService.js";
 
@@ -40,12 +40,7 @@ router.post("/", async (req, res) => {
 
     // ─── Online: Full 4-model cascade fallback ───
     if (!result.success && !offline) {
-      // 1) Try Gemini first (fastest, highest quality)
-      console.log("[Chat] Trying Gemini...");
-      result = await chatWithGemini(code, language, analysis || {}, messages);
-    }
 
-    if (!result.success && !offline) {
       // 2) Try Groq (Llama 3)
       console.log("[Chat] Gemini failed, trying Groq Llama...");
       result = await chatWithGroq(code, language, analysis || {}, messages);

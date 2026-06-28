@@ -96,7 +96,7 @@ export default function EditorPage() {
   const [activeMode, setActiveMode] = useState('Analyze');
   const [routingMode, setRoutingMode] = useState('auto');
   const [modelStatuses, setModelStatuses] = useState({
-    gemini: 'online', llama: 'online', mixtral: 'online', qwen: 'online',
+    llama: 'online', mixtral: 'online', qwen: 'online',
   });
   const [files, setFiles] = useState([
     { name: 'main.py', language: 'python', content: DEFAULT_CODE },
@@ -180,9 +180,9 @@ export default function EditorPage() {
   /* ─── Offline mode ─── */
   useEffect(() => {
     if (routingMode === 'offline') {
-      setModelStatuses({ gemini: 'idle', llama: 'idle', mixtral: 'idle', qwen: 'online' });
+      setModelStatuses({ llama: 'idle', mixtral: 'idle', qwen: 'online' });
     } else {
-      setModelStatuses({ gemini: 'online', llama: 'online', mixtral: 'online', qwen: 'online' });
+      setModelStatuses({ llama: 'online', mixtral: 'online', qwen: 'online' });
     }
   }, [routingMode]);
 

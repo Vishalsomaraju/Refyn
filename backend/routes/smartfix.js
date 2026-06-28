@@ -1,12 +1,10 @@
 import express from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import Groq from "groq-sdk";
 
 const router = express.Router();
 
-const genAI = process.env.GEMINI_API_KEY
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  : null;
+
 const groq = process.env.GROQ_API_KEY
   ? new Groq({ apiKey: process.env.GROQ_API_KEY })
   : null;
@@ -19,52 +17,10 @@ function extractCode(text) {
   return text.trim();
 }
 
-// Gemini quota tracking — skip for 1 hour after 429
-let geminiQuotaDead = false;
-let geminiQuotaResetTime = 0;
-
-// ── Sequential cascade: Gemini → Llama → Mixtral → Ollama ──
+// ── Sequential cascade: Llama → Mixtral → Ollama ──
 // Priority per project spec. Ollama is always the last resort.
 async function cascadeFix(systemPrompt, userPrompt, offline = false) {
   const errors = [];
-
-  // 1. Gemini — primary cloud model (skip if offline or quota exhausted)
-  if (!offline && genAI) {
-    if (geminiQuotaDead && Date.now() < geminiQuotaResetTime) {
-      console.log(
-        "[SmartFix] skipping Gemini — quota exhausted, resets at",
-        new Date(geminiQuotaResetTime).toLocaleTimeString(),
-      );
-    } else {
-      try {
-        console.log("[SmartFix] trying Gemini...");
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const result = await model.generateContent(
-          systemPrompt + "\n\n" + userPrompt,
-        );
-        const text = result.response.text();
-        if (text?.trim()) {
-          console.log("[SmartFix] ✓ Gemini responded");
-          geminiQuotaDead = false;
-          return { fixedCode: extractCode(text), usedModel: "gemini" };
-        }
-      } catch (e) {
-        console.warn("[SmartFix] ✗ Gemini failed:", e.message);
-        if (
-          e.message?.includes("429") ||
-          e.message?.includes("quota") ||
-          e.message?.includes("RESOURCE_EXHAUSTED")
-        ) {
-          geminiQuotaDead = true;
-          geminiQuotaResetTime = Date.now() + 60 * 60 * 1000;
-          console.log(
-            "[SmartFix] Gemini quota exhausted — skipping for 1 hour",
-          );
-        }
-        errors.push("Gemini: " + e.message);
-      }
-    }
-  }
 
   // 2. Groq Llama 3.3 70B — secondary (skip if offline)
   if (!offline && groq) {

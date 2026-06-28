@@ -16,9 +16,10 @@
  *  - modelMode "manual", "all", "offline" still work exactly as before
  */
 
-import { analyzeWithGemini, smartFixWithGemini } from "./geminiService.js";
+// Gemini removed as requested
 import { analyzeWithGroq, analyzeWithMixtral } from "./groqService.js";
 import { analyzeWithOllama } from "./ollamaService.js";
+import { analyzeWithOpenRouter } from "./openRouterService.js";
 import {
   routeModel,
   calculateCost,
@@ -28,20 +29,20 @@ import { loadMemory, saveMemory, buildMemoryContext } from "./memoryService.js";
 
 // ─── Model caller map ─────────────────────────────────────────────────────────
 const MODEL_FN = {
-  gemini: analyzeWithGemini,
   groq: analyzeWithGroq,
   mixtral: analyzeWithMixtral,
+  openrouter: analyzeWithOpenRouter,
   ollama: analyzeWithOllama,
 };
 
 // Fallback order if the cascade-selected model fails
-const FALLBACK_ORDER = ["groq", "mixtral", "ollama"];
+const FALLBACK_ORDER = ["groq", "mixtral", "openrouter", "ollama"];
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 export const smartAnalyze = async (code, language, options = {}) => {
   const {
     modelMode = "auto",
-    selectedModel = "gemini",
+    selectedModel = "openrouter",
     offline = false,
     userId = null, // NEW — passed from analyze route
   } = options;
@@ -71,7 +72,7 @@ export const smartAnalyze = async (code, language, options = {}) => {
 
   // ── Manual mode (unchanged, just adds memory) ─────────────────────────────
   if (modelMode === "manual") {
-    const fn = MODEL_FN[selectedModel] || analyzeWithGemini;
+    const fn = MODEL_FN[selectedModel] || analyzeWithOpenRouter;
     const result = await fn(code, language, memoryContext);
     if (result.success) {
       await trySaveMemory(userId, result.data, language);
@@ -84,13 +85,13 @@ export const smartAnalyze = async (code, language, options = {}) => {
 
   // ── All/parallel mode (unchanged logic, adds memory) ─────────────────────
   if (modelMode === "all") {
-    const [gemini, groq, mixtral, ollama] = await Promise.allSettled([
-      analyzeWithGemini(code, language, memoryContext),
+    const [openrouter, groq, mixtral, ollama] = await Promise.allSettled([
+      analyzeWithOpenRouter(code, language, memoryContext),
       analyzeWithGroq(code, language, memoryContext),
       analyzeWithMixtral(code, language, memoryContext),
       analyzeWithOllama(code, language),
     ]);
-    const merged = crossValidate([gemini, groq, mixtral, ollama]);
+    const merged = crossValidate([openrouter, groq, mixtral, ollama]);
     await trySaveMemory(userId, merged.data, language);
     return enrichResult(merged, "all", startTime, code, memoryData);
   }
@@ -240,5 +241,4 @@ const crossValidate = (results) => {
   };
 };
 
-// Re-export smartFix unchanged — nothing to modify there
-export { smartFixWithGemini };
+// Removed smartFixWithGemini export

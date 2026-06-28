@@ -9,10 +9,10 @@
 
 // ─── Model cost per 1k tokens (approx) ───────────────────────────────────────
 const MODEL_COSTS = {
-  gemini: 0.000075,  // gemini-2.0-flash
-  groq: 0.000020,    // llama3-70b
+  groq: 0.00002, // llama3-70b
   mixtral: 0.000024, // mixtral-8x7b
-  ollama: 0.0,       // local = free
+  openrouter: 0.00002,
+  ollama: 0.0, // local = free
 };
 
 // ─── Complexity Scorer ────────────────────────────────────────────────────────
@@ -76,7 +76,11 @@ export const scoreComplexity = (code, language) => {
  * Returns { model, reason, complexityScore, estimatedCost }
  * based on complexity score and current availability.
  */
-export const routeModel = (code, language, availableModels = ["gemini", "groq", "mixtral", "ollama"]) => {
+export const routeModel = (
+  code,
+  language,
+  availableModels = ["groq", "mixtral", "openrouter", "ollama"],
+) => {
   const complexityScore = scoreComplexity(code, language);
   const linesOfCode = code.split("\n").length;
   const estimatedTokens = Math.ceil(code.length / 4);
@@ -85,22 +89,23 @@ export const routeModel = (code, language, availableModels = ["gemini", "groq", 
 
   // Routing tiers
   if (complexityScore >= 60) {
-    // High complexity or security-sensitive → Gemini quality gate
-    model = availableModels.includes("groq") ? "groq" : "mixtral";
-    reason = complexityScore >= 80
-      ? "Security-sensitive or highly complex code detected — routing to Groq for deep analysis"
-      : "Moderate-to-high complexity — Groq selected for accuracy";
+    // High complexity → Mixtral for thorough analysis
+    model = availableModels.includes("mixtral") ? "mixtral" : "groq";
+    reason =
+      complexityScore >= 80
+        ? "Security-sensitive or highly complex code — routing to Mixtral for deep analysis"
+        : "Moderate-to-high complexity — Mixtral selected for accuracy";
   } else if (complexityScore >= 30) {
     // Medium complexity → Groq (fast, good enough)
-    model = availableModels.includes("groq") ? "groq" : "mixtral";
+    model = availableModels.includes("groq") ? "groq" : "openrouter";
     reason = "Medium complexity — Groq selected for speed/cost balance";
   } else {
     // Simple code → cheapest available
     model = availableModels.includes("groq")
       ? "groq"
       : availableModels.includes("mixtral")
-      ? "mixtral"
-      : "ollama";
+        ? "mixtral"
+        : "openrouter";
     reason = "Simple code — using fastest/cheapest model";
   }
 
@@ -127,14 +132,14 @@ export const calculateCost = (model, tokens) => {
 };
 
 /**
- * Compares what Gemini-for-everything would have cost
+ * Compares what a premium model would have cost
  * vs what CascadeFlow routing actually cost.
  * Returns savings as a percentage string.
  */
 export const calculateSavings = (actualModel, tokens) => {
   const actualCost = calculateCost(actualModel, tokens);
-  const geminiCost = calculateCost("gemini", tokens);
-  if (geminiCost === 0) return "0%";
-  const savings = ((geminiCost - actualCost) / geminiCost) * 100;
+  const baselineCost = (tokens / 1000) * 0.000075; // premium cost baseline
+  if (baselineCost === 0) return "0%";
+  const savings = ((baselineCost - actualCost) / baselineCost) * 100;
   return `${Math.round(Math.max(savings, 0))}%`;
 };

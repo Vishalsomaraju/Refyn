@@ -11,7 +11,7 @@
  * smarter over time — this is the core demo story.
  */
 
-const HINDSIGHT_BASE_URL = "https://api.hindsight.vectorize.io/v1"; // update if different
+const HINDSIGHT_BASE_URL = "https://api.hindsight.vectorize.io/v1/default/banks";
 const MAX_MEMORIES_TO_INJECT = 5; // keep prompt injection short
 
 import fs from 'fs';
@@ -27,9 +27,9 @@ const hindsightFetch = async (endpointPath, options = {}) => {
   }
 
   // Local fallback mock
-  const isPost = options.method === "POST";
-  const urlParams = new URLSearchParams(endpointPath.split('?')[1] || '');
-  const userId = urlParams.get('user_id') || (options.body && JSON.parse(options.body).user_id);
+  const pathParts = endpointPath.split('?')[0].split('/');
+  const userId = decodeURIComponent(pathParts[1] || "");
+  const action = pathParts[3] || "";
 
   try {
     const res = await fetch(`${HINDSIGHT_BASE_URL}${endpointPath}`, {
@@ -54,18 +54,16 @@ const hindsightFetch = async (endpointPath, options = {}) => {
       memoryDb = JSON.parse(fs.readFileSync(LOCAL_MEMORY_FILE, 'utf-8'));
     }
 
-    if (isPost) {
+    if (action === 'retain') {
       const body = JSON.parse(options.body);
-      const uid = body.user_id;
-      if (!memoryDb[uid]) memoryDb[uid] = [];
-      memoryDb[uid].push(body);
+      if (!memoryDb[userId]) memoryDb[userId] = [];
+      if (body.items) memoryDb[userId].push(...body.items);
       fs.writeFileSync(LOCAL_MEMORY_FILE, JSON.stringify(memoryDb, null, 2));
       return { success: true };
     } else {
-      const uid = userId;
       return {
-        memories: memoryDb[uid] || [],
-        total: (memoryDb[uid] || []).length
+        items: memoryDb[userId] || [],
+        total: (memoryDb[userId] || []).length
       };
     }
   }
@@ -82,16 +80,22 @@ const hindsightFetch = async (endpointPath, options = {}) => {
 export const loadMemory = async (userId) => {
   if (!userId) return { memories: [], rawMemories: [] };
 
-  const data = await hindsightFetch(`/memories?user_id=${encodeURIComponent(userId)}&limit=20`);
+  const data = await hindsightFetch(`/${encodeURIComponent(userId)}/memories/recall`, {
+    method: "POST",
+    body: JSON.stringify({
+      query: "recurring coding issues and patterns",
+      limit: 20
+    })
+  });
 
-  if (!data || !data.memories) return { memories: [], rawMemories: [] };
+  if (!data || !data.items) return { memories: [], rawMemories: [] };
 
-  const memories = data.memories.map((m) => m.content || m.text || m.summary || "");
+  const memories = data.items.map((m) => m.content || m.text || m.summary || "");
   const filtered = memories.filter(Boolean);
 
   return {
     memories: filtered,
-    rawMemories: data.memories,
+    rawMemories: data.items,
     sessionCount: data.total || filtered.length,
   };
 };
@@ -107,24 +111,20 @@ export const saveMemory = async (userId, analysisData, language) => {
   const patterns = extractPatterns(analysisData, language);
   if (patterns.length === 0) return;
 
-  // Save each pattern as a separate memory entry
-  const savePromises = patterns.map((pattern) =>
-    hindsightFetch("/memories", {
-      method: "POST",
-      body: JSON.stringify({
-        user_id: userId,
-        content: pattern,
-        metadata: {
-          language,
-          score: analysisData.score,
-          timestamp: new Date().toISOString(),
-          source: "mnemo-code-review",
-        },
-      }),
-    })
-  );
+  // Hindsight retain expects { items: [...] }
+  const items = patterns.map((pattern) => ({
+    content: pattern,
+    tags: ["mnemo-code-review", language]
+  }));
 
-  await Promise.allSettled(savePromises);
+  try {
+    await hindsightFetch(`/${encodeURIComponent(userId)}/memories/retain`, {
+      method: "POST",
+      body: JSON.stringify({ items }),
+    });
+  } catch(e) {
+    console.warn(`[Memory] retain error`, e);
+  }
   console.log(`[Memory] Saved ${patterns.length} patterns for user: ${userId}`);
 };
 
