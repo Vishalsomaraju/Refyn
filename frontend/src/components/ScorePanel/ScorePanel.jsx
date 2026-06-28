@@ -84,7 +84,7 @@ export default function ScorePanel({ analysis, offline }) {
     s < 40 ? theme.critical : s < 70 ? theme.warning : theme.success;
 
   const MODELS_AGREEMENT = [
-    { name: "Gemini", pct: 85, color: "#4285f4", isCloud: true },
+    { name: "OpenRouter", pct: 85, color: "#8b5cf6", isCloud: true },
     { name: "Groq", pct: 72, color: "#f55036", isCloud: true },
     { name: "Local", pct: 68, color: "#4ec9b0", isCloud: false },
   ];

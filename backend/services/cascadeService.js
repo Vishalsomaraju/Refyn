@@ -4,7 +4,7 @@
  *
  * Replaces the dumb waterfall in aiRouter.js with a complexity-aware
  * routing system. Simple code → cheap/fast model. Complex security/logic
- * bugs → Gemini quality gate. Saves cost, fixes the rate-limit problem.
+ * bugs → OpenRouter quality gate. Saves cost, fixes the rate-limit problem.
  */
 
 // ─── Model cost per 1k tokens (approx) ───────────────────────────────────────

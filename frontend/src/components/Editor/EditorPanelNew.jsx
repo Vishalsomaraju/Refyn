@@ -191,7 +191,7 @@ export default function EditorPanelNew({
           {stats.saved && (
             <>
               <span style={{ color: 'var(--border)' }}>|</span>
-              <span>Saved: <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{stats.saved}% vs Gemini</span></span>
+              <span>Saved: <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{stats.saved} vs Premium</span></span>
             </>
           )}
           <span style={{ color: 'var(--border)' }}>|</span>

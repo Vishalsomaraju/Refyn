@@ -1,0 +1,25 @@
+{
+  "vishal": [
+    {
+      "content": "In python: recurring performance issue — \"Inefficient Fibonacci Calculation\" (found 1x in this session)",
+      "tags": [
+        "mnemo-code-review",
+        "python"
+      ]
+    },
+    {
+      "content": "In python: recurring quality issue — \"Lack of Input Validation\" (found 3x in this session)",
+      "tags": [
+        "mnemo-code-review",
+        "python"
+      ]
+    },
+    {
+      "content": "Code quality score: 40/100 for python (6/28/2026)",
+      "tags": [
+        "mnemo-code-review",
+        "python"
+      ]
+    }
+  ]
+}

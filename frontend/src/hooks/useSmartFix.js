@@ -4,7 +4,7 @@ export function useSmartFix() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const getSmartFix = async (code, language, issues, isOffline = false, model = 'gemini') => {
+  const getSmartFix = async (code, language, issues, isOffline = false, model = 'openrouter') => {
     setLoading(true);
     setError(null);
     try {

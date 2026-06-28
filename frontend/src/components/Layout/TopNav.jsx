@@ -19,9 +19,14 @@ export default function TopNav({ activeMode, onModeChange, isDark, onThemeToggle
         .then(data => {
           if (data && data.patterns) setMemoryCount(data.patterns.length);
           else if (Array.isArray(data)) setMemoryCount(data.length);
+          else if (data && data.totalMemories !== undefined) setMemoryCount(data.totalMemories);
         })
         .catch(() => {});
     }
+
+    const handleMemoryUpdate = (e) => setMemoryCount(e.detail.count);
+    window.addEventListener('memoryUpdated', handleMemoryUpdate);
+    return () => window.removeEventListener('memoryUpdated', handleMemoryUpdate);
   }, [username]);
 
   useEffect(() => {

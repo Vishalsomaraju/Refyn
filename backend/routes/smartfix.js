@@ -1,13 +1,7 @@
 import express from "express";
-
-import Groq from "groq-sdk";
+import { fixWithOpenRouter } from "../services/openRouterService.js";
 
 const router = express.Router();
-
-
-const groq = process.env.GROQ_API_KEY
-  ? new Groq({ apiKey: process.env.GROQ_API_KEY })
-  : null;
 
 // Strip markdown fences if AI wraps code in them
 function extractCode(text) {
@@ -17,60 +11,25 @@ function extractCode(text) {
   return text.trim();
 }
 
-// ── Sequential cascade: Llama → Mixtral → Ollama ──
-// Priority per project spec. Ollama is always the last resort.
+// ── Sequential cascade: OpenRouter → Ollama ──
 async function cascadeFix(systemPrompt, userPrompt, offline = false) {
   const errors = [];
 
-  // 2. Groq Llama 3.3 70B — secondary (skip if offline)
-  if (!offline && groq) {
+  // 1. OpenRouter — Primary
+  if (!offline && process.env.OPENROUTER_API_KEY) {
     try {
-      console.log("[SmartFix] trying Llama 3.3 70B...");
-      const result = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 4096,
-        temperature: 0.1,
-      });
-      const text = result.choices[0]?.message?.content;
-      if (text?.trim()) {
-        console.log("[SmartFix] ✓ Llama responded");
-        return { fixedCode: extractCode(text), usedModel: "llama" };
+      console.log("[SmartFix] trying OpenRouter (via openRouterService)...");
+      const result = await fixWithOpenRouter(systemPrompt, userPrompt);
+      if (result && result.fixedCode) {
+        return { fixedCode: extractCode(result.fixedCode), usedModel: result.usedModel };
       }
     } catch (e) {
-      console.warn("[SmartFix] ✗ Llama failed:", e.message);
-      errors.push("Llama: " + e.message);
+      console.warn("[SmartFix] ✗ OpenRouter failed:", e.message);
+      errors.push("OpenRouter: " + e.message);
     }
   }
 
-  // 3. Groq Mixtral 8x7B — tertiary (skip if offline)
-  if (!offline && groq) {
-    try {
-      console.log("[SmartFix] trying Mixtral 8x7B...");
-      const result = await groq.chat.completions.create({
-        model: "mixtral-8x7b-32768",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 4096,
-        temperature: 0.1,
-      });
-      const text = result.choices[0]?.message?.content;
-      if (text?.trim()) {
-        console.log("[SmartFix] ✓ Mixtral responded");
-        return { fixedCode: extractCode(text), usedModel: "mixtral" };
-      }
-    } catch (e) {
-      console.warn("[SmartFix] ✗ Mixtral failed:", e.message);
-      errors.push("Mixtral: " + e.message);
-    }
-  }
-
-  // 4. Ollama — always available, last resort, works offline
+  // 2. Ollama — always available, last resort, works offline
   try {
     console.log("[SmartFix] trying Ollama (last resort)...");
     const res = await fetch(

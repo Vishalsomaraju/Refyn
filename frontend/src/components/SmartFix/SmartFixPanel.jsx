@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Wand2, Activity } from 'lucide-react'
 
 const circumference = 314.16
 
@@ -130,7 +131,7 @@ export default function SmartFixPanel({
             onClick={onClose}
             style={{
               position:'fixed', inset:0,
-              background:'rgba(0,0,0,0.75)', backdropFilter:'blur(4px)',
+              background:'rgba(0,0,0,0.6)', backdropFilter:'blur(8px)',
               zIndex:400
             }}
           />
@@ -148,11 +149,11 @@ export default function SmartFixPanel({
               left: `calc(50% + ${pos.x}px)`,
               transform:'translate(-50%,-50%)',
               width: Math.min(typeof window !== 'undefined' ? window.innerWidth - 40 : 780, 780),
-              maxHeight:'85vh',
+              maxHeight:'75vh',
               background:'var(--surface)', border:'1px solid var(--border)',
-              borderRadius:12, overflow:'hidden', zIndex:401,
+              borderRadius:16, overflow:'hidden', zIndex:401,
               display:'flex', flexDirection:'column',
-              boxShadow:'0 25px 60px rgba(0,0,0,0.5)'
+              boxShadow:'0 30px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.05) inset'
             }}
           >
             {/* ── HEADER (drag handle) ── */}
@@ -164,9 +165,16 @@ export default function SmartFixPanel({
                 cursor: dragging.current ? 'grabbing' : 'grab', userSelect:'none'
               }}
             >
-              <span style={{ fontSize:15, fontWeight:700, color:'var(--text)' }}>
-                ⚡ Smart Fix
-              </span>
+              <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
+                <span style={{ fontSize:15, fontWeight:700, color:'var(--text)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Wand2 size={18} color="var(--accent)" /> Smart Fix
+                </span>
+                {/* Drag Handle Pill */}
+                <div style={{
+                  width: 32, height: 4, borderRadius: 2, background: 'var(--border)',
+                  marginLeft: 16, opacity: dragging.current ? 0.8 : 0.4
+                }} />
+              </div>
 
               {!done && fixes.length > 0 && (
                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -292,7 +300,7 @@ export default function SmartFixPanel({
                         DETECTED BY
                       </div>
                       <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                        {['gemini','llama','mixtral','qwen'].map(m => (
+                        {['openrouter','llama','mixtral','qwen'].map(m => (
                           <span key={m} style={{
                             padding:'3px 10px', borderRadius:20, fontSize:12,
                             background: fix.detectedBy.includes(m)
@@ -401,15 +409,16 @@ export default function SmartFixPanel({
                       border:'1px solid rgba(99,102,241,0.25)',
                       borderRadius:8, textAlign:'center'
                     }}>
-                      <div style={{ fontSize:12, color:'var(--accent)', marginBottom:8, fontWeight:600 }}>
-                        ⚡ Groq + Ollama cascade...
+                      <div style={{ fontSize:12, color:'var(--accent)', marginBottom:8, fontWeight:600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <Activity size={14} /> Groq + Ollama cascade...
                       </div>
                       <div style={{
                         height:3, background:'var(--border)', borderRadius:2, overflow:'hidden'
                       }}>
                         <div style={{
                           height:'100%', width:'40%',
-                          background:'var(--accent)', borderRadius:2,
+                          background:'var(--accent)', borderRadius:4,
+                          boxShadow: '0 0 10px var(--accent-glow)',
                           animation:'indeterminate 1.2s ease infinite'
                         }}/>
                       </div>

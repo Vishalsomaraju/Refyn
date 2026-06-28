@@ -33,10 +33,7 @@ app.get("/health", (req, res) => {
 app.listen(PORT, () => {
   console.log(`\n⬡ Refyn backend running on http://localhost:${PORT}`);
   console.log(
-    `  Gemini API: ${process.env.GEMINI_API_KEY ? "✓ configured" : "✗ missing"}`,
-  );
-  console.log(
-    `  Groq API:   ${process.env.GROQ_API_KEY ? "✓ Llama + Mixtral" : "✗ missing"}`,
+    `  Groq API: ${process.env.GROQ_API_KEY ? "✓ configured" : "✗ missing"}`,
   );
   console.log(`  Mixtral:    using same Groq key`);
   console.log(`  Ollama:     checking localhost:11434...\n`);

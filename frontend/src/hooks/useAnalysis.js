@@ -45,7 +45,13 @@ export function useAnalysis() {
         ...parsedStats,
         model: parsedStats.usedModel || data.usedModel || data.data.usedModel || 'unknown'
       });
-      setMemoryInsights(data.memoryInsights || data.data.memoryInsights || []);
+      const insights = data.memoryInsights || data.data?.memoryInsights || [];
+      setMemoryInsights(insights);
+      
+      // Update the memory pill in TopNav
+      if (insights.length > 0) {
+        window.dispatchEvent(new CustomEvent('memoryUpdated', { detail: { count: insights.length } }));
+      }
       
     } catch (err) {
       setError(err.message || 'An unexpected error occurred during analysis');

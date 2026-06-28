@@ -42,7 +42,7 @@ router.post("/", async (req, res) => {
     if (!result.success && !offline) {
 
       // 2) Try Groq (Llama 3)
-      console.log("[Chat] Gemini failed, trying Groq Llama...");
+      console.log("[Chat] Trying Groq Llama...");
       result = await chatWithGroq(code, language, analysis || {}, messages);
     }
 

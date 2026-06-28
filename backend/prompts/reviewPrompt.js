@@ -26,7 +26,7 @@ Return ONLY a valid JSON object in this exact structure, nothing else:
       "beforeCode":  "<the problematic code snippet, exact as it appears>",
       "afterCode":   "<the fixed version of that same snippet>",
       "scoreDelta":  <integer, how many points fixing this would add, e.g. 15>,
-      "detectedBy":  ["gemini"]
+      "detectedBy":  ["openrouter"]
     }
   ],
   "optimizedCode": "<the fully corrected and improved version of the entire code>",

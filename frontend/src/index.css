@@ -32,13 +32,13 @@
 }
 
 [data-theme="light"] {
-  --bg: #fafafa;
+  --bg: #f8f8f6;
   --surface: #ffffff;
-  --surface-high: #f4f4f8;
-  --border: #e2e2ea;
-  --text: #111118;
-  --text-secondary: #505060;
-  --text-muted: #a0a0b0;
+  --surface-high: #f2f1eb;
+  --border: #e6e4df;
+  --text: #1a1a18;
+  --text-secondary: #50504b;
+  --text-muted: #9a9a95;
 }
 
 * {

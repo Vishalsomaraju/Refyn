@@ -5,13 +5,13 @@
  *
  * What changed vs CodeRefine original:
  *  - CascadeFlow routing: complexity score decides which model runs FIRST
- *    (no more "try Gemini, hope it works, fallback waterfall")
+ *    (no more "try premium, hope it works, fallback waterfall")
  *  - Memory context: Hindsight memories injected into the prompt
  *  - Response now includes: usedModel, complexityScore, cost, latency,
  *    routingReason, savings — all needed for the frontend stats bar
  *
  * What stayed the same:
- *  - analyzeWithGemini / analyzeWithGroq / analyzeWithMixtral / analyzeWithOllama
+ *  - analyzeWithGroq / analyzeWithMixtral / analyzeWithOllama
  *    are called identically — no changes needed in those service files
  *  - modelMode "manual", "all", "offline" still work exactly as before
  */

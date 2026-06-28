@@ -1,7 +1,7 @@
 import { useTheme } from "../../utils/theme";
 
 const MODELS = [
-  { id: "gemini", name: "Gemini 2.0 Flash", sub: "Google AI", color: "#4285f4", rate: "15/m", isCloud: true },
+  { id: "openrouter", name: "OpenRouter", sub: "Gemma / Qwen / Llama", color: "#8b5cf6", rate: "free", isCloud: true },
   { id: "groq", name: "Llama 3.3 70B", sub: "Groq Cloud", color: "#f55036", rate: "30/m", isCloud: true },
   { id: "mixtral", name: "Mixtral 8x7B", sub: "Groq Cloud", color: "#ff6f00", rate: "30/m", isCloud: true },
   { id: "ollama", name: "Qwen2.5-Coder", sub: "Local (Ollama)", color: "#4ec9b0", rate: "∞", isCloud: false },

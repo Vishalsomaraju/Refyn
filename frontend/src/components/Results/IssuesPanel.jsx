@@ -1,8 +1,8 @@
 import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Code2, ChevronDown } from 'lucide-react';
+import { Code2, ChevronDown, Wand2, Activity } from 'lucide-react';
 
-const MODEL_NAMES = ['Gemini 2.0', 'Groq Llama', 'Mixtral', 'Qwen 2.5'];
+const MODEL_NAMES = ['OpenRouter', 'Groq Llama', 'Mixtral', 'Qwen 2.5'];
 const SEVERITY_ORDER = { critical: 0, warning: 1, info: 2 };
 
 const cardVariants = {
@@ -68,14 +68,19 @@ export const IssueCard = memo(function IssueCard({ issue, index, onApplyFix, onS
       exit="exit"
       custom={index}
       style={{
-        position: 'relative', borderRadius: 8, overflow: 'hidden',
+        position: 'relative', borderRadius: 10, overflow: 'hidden',
         background: 'var(--surface)', border: '1px solid var(--border)',
         marginBottom: 8, cursor: 'pointer',
         animation: isCritical ? `crit-glow 1.2s ease-out forwards` : 'none',
         animationDelay: `${index * 0.06 + 0.4}s`,
-        transition: 'transform 150ms ease, border-color 150ms ease',
+        transition: 'all 200ms ease',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
       }}
-      whileHover={{ y: -2, borderColor: 'var(--accent)' }}
+      whileHover={{ 
+        y: -2, 
+        borderColor: 'var(--accent)', 
+        boxShadow: '0 8px 16px rgba(0,0,0,0.06)' 
+      }}
     >
       {/* Left accent bar */}
       <div style={{
@@ -263,13 +268,15 @@ export default function IssuesPanel({
         </div>
         {/* Indeterminate bar */}
         <div style={{
-          width: '80%', height: 3, borderRadius: 2,
+          width: '80%', height: 4, borderRadius: 2,
           background: 'var(--surface-high)', position: 'relative', overflow: 'hidden',
+          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
         }}>
           <div style={{
             position: 'absolute', height: '100%', borderRadius: 2,
-            background: 'var(--accent)',
-            animation: 'indeterminate 1.2s ease-in-out infinite',
+            background: 'linear-gradient(90deg, transparent, var(--accent), transparent)',
+            boxShadow: '0 0 10px var(--accent-glow)',
+            animation: 'indeterminate 1.5s ease-in-out infinite',
           }} />
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
@@ -296,8 +303,8 @@ export default function IssuesPanel({
         <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
           Ready to analyze
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-          Press ⚡ Analyze or Ctrl+Shift+A
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          Press <Activity size={12} /> Analyze or Ctrl+Shift+A
         </div>
       </div>
     );
@@ -369,7 +376,10 @@ export default function IssuesPanel({
           onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
-          ⚡ Smart Fix All ({issues.length} issues)
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <Wand2 size={16} />
+            Smart Fix All ({issues.length} issues)
+          </div>
           {/* Shimmer sweep on hover */}
           <span style={{
             position: 'absolute', top: 0, left: '-100%',

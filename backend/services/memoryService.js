@@ -1,145 +1,98 @@
 /**
- * memoryService.js
- * Mnemo — Hindsight persistent memory integration
+ * memoryService.js (REWRITTEN for Refyn)
  *
- * Every time a user reviews code:
- *  1. BEFORE analysis  → load their memory (past patterns, recurring issues)
- *  2. AFTER analysis   → extract new patterns and save them back
+ * Uses official @vectorize-io/hindsight-client SDK.
+ * Memory bank: "refyn" (one bank for the whole app, userId scoped in content)
  *
- * The memory panel in the frontend reads from getMemorySummary().
- * The analyze prompt gets enriched with past patterns so reviews get
- * smarter over time — this is the core demo story.
+ * Flow:
+ *  BEFORE analysis → recall(userId query) → inject into prompt
+ *  AFTER analysis  → retain(patterns) → saved to Hindsight
  */
 
-const HINDSIGHT_BASE_URL = "https://api.hindsight.vectorize.io/v1/default/banks";
-const MAX_MEMORIES_TO_INJECT = 5; // keep prompt injection short
+import { HindsightClient } from "@vectorize-io/hindsight-client";
 
-import fs from 'fs';
-import path from 'path';
+const MEMORY_BANK = "default"; // Hindsight memory bank name
+const MAX_MEMORIES_TO_INJECT = 5;
 
-const LOCAL_MEMORY_FILE = path.join(process.cwd(), 'hindsight_mock.json');
+// ─── Client singleton ─────────────────────────────────────────────────────────
+let _client = null;
 
-const hindsightFetch = async (endpointPath, options = {}) => {
+const getClient = () => {
+  if (_client) return _client;
   const apiKey = process.env.HINDSIGHT_API_KEY;
   if (!apiKey) {
     console.warn("[Memory] HINDSIGHT_API_KEY not set — memory disabled");
     return null;
   }
-
-  // Local fallback mock
-  const pathParts = endpointPath.split('?')[0].split('/');
-  const userId = decodeURIComponent(pathParts[1] || "");
-  const action = pathParts[3] || "";
-
-  try {
-    const res = await fetch(`${HINDSIGHT_BASE_URL}${endpointPath}`, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        ...(options.headers || {}),
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Status ${res.status}`);
-    }
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Memory] Hindsight API failed (${err.message}). Falling back to local storage.`);
-    
-    // Read local memory
-    let memoryDb = {};
-    if (fs.existsSync(LOCAL_MEMORY_FILE)) {
-      memoryDb = JSON.parse(fs.readFileSync(LOCAL_MEMORY_FILE, 'utf-8'));
-    }
-
-    if (action === 'retain') {
-      const body = JSON.parse(options.body);
-      if (!memoryDb[userId]) memoryDb[userId] = [];
-      if (body.items) memoryDb[userId].push(...body.items);
-      fs.writeFileSync(LOCAL_MEMORY_FILE, JSON.stringify(memoryDb, null, 2));
-      return { success: true };
-    } else {
-      return {
-        items: memoryDb[userId] || [],
-        total: (memoryDb[userId] || []).length
-      };
-    }
-  }
+  _client = new HindsightClient({
+    baseUrl: "https://api.hindsight.vectorize.io",
+    apiKey,
+  });
+  return _client;
 };
 
 // ─── Load Memory ──────────────────────────────────────────────────────────────
 /**
- * Loads all stored memories for a user.
- * Returns { memories: string[], rawMemories: object[] }
- *
- * memories → human-readable bullet points for the frontend panel
- * rawMemories → full objects for the prompt injection
+ * Recalls past patterns for a user before analysis.
+ * Returns { memories: string[], sessionCount: number }
  */
 export const loadMemory = async (userId) => {
-  if (!userId) return { memories: [], rawMemories: [] };
+  if (!userId) return { memories: [], sessionCount: 0 };
+  const client = getClient();
+  if (!client) return { memories: [], sessionCount: 0 };
 
-  const data = await hindsightFetch(`/${encodeURIComponent(userId)}/memories/recall`, {
-    method: "POST",
-    body: JSON.stringify({
-      query: "recurring coding issues and patterns",
-      limit: 20
-    })
-  });
+  try {
+    const results = await client.recall(
+      MEMORY_BANK,
+      `code review patterns and issues for developer ${userId}`,
+    );
 
-  if (!data || !data.items) return { memories: [], rawMemories: [] };
+    const rawResults = results?.results || [];
 
-  const memories = data.items.map((m) => m.content || m.text || m.summary || "");
-  const filtered = memories.filter(Boolean);
+    // results is an array of memory strings or objects
+    const memories = rawResults
+      .map((r) => (typeof r === "string" ? r : r.content || r.text || ""))
+      .filter(Boolean);
 
-  return {
-    memories: filtered,
-    rawMemories: data.items,
-    sessionCount: data.total || filtered.length,
-  };
+    console.log(`[Memory] Recalled ${memories.length} memories for: ${userId}`);
+    return { memories, sessionCount: memories.length };
+  } catch (err) {
+    console.warn("[Memory] Recall failed (non-fatal):", err.message);
+    return { memories: [], sessionCount: 0 };
+  }
 };
 
 // ─── Save Memory ──────────────────────────────────────────────────────────────
 /**
- * Extracts patterns from analysis results and saves them to Hindsight.
+ * Retains patterns from analysis results into Hindsight.
  * Called AFTER a successful analysis.
  */
 export const saveMemory = async (userId, analysisData, language) => {
   if (!userId || !analysisData) return;
+  const client = getClient();
+  if (!client) return;
 
-  const patterns = extractPatterns(analysisData, language);
+  const patterns = extractPatterns(analysisData, language, userId);
   if (patterns.length === 0) return;
 
-  // Hindsight retain expects { items: [...] }
-  const items = patterns.map((pattern) => ({
-    content: pattern,
-    tags: ["mnemo-code-review", language]
-  }));
-
   try {
-    await hindsightFetch(`/${encodeURIComponent(userId)}/memories/retain`, {
-      method: "POST",
-      body: JSON.stringify({ items }),
-    });
-  } catch(e) {
-    console.warn(`[Memory] retain error`, e);
+    // Retain all patterns as one memory entry per review session
+    const memoryText = patterns.join(" | ");
+    await client.retain(MEMORY_BANK, memoryText);
+    console.log(`[Memory] Retained ${patterns.length} patterns for: ${userId}`);
+  } catch (err) {
+    console.warn("[Memory] Retain failed (non-fatal):", err.message);
   }
-  console.log(`[Memory] Saved ${patterns.length} patterns for user: ${userId}`);
 };
 
 // ─── Pattern Extractor ────────────────────────────────────────────────────────
-/**
- * Turns raw analysis output into memorable insight strings.
- * These are what show up in the memory panel.
- */
-const extractPatterns = (analysisData, language) => {
+const extractPatterns = (analysisData, language, userId) => {
   const patterns = [];
   const issues = analysisData.issues || [];
 
-  if (!issues.length) return patterns;
+  if (!issues.length && analysisData.score === undefined) return patterns;
 
-  // Group issues by category
+  // Group by category
   const byCategory = {};
   issues.forEach((issue) => {
     const cat = issue.category || issue.type || "general";
@@ -147,56 +100,45 @@ const extractPatterns = (analysisData, language) => {
     byCategory[cat].push(issue);
   });
 
-  // Build pattern strings
   Object.entries(byCategory).forEach(([category, categoryIssues]) => {
-    if (categoryIssues.length >= 1) {
-      const example = categoryIssues[0];
-      const desc = example.title || example.message || example.description || category;
-      patterns.push(
-        `In ${language}: recurring ${category} issue — "${desc}" (found ${categoryIssues.length}x in this session)`
-      );
-    }
+    const example = categoryIssues[0];
+    const desc = example.title || example.message || category;
+    patterns.push(
+      `Developer ${userId} has recurring ${category} issue in ${language}: "${desc}" (${categoryIssues.length}x)`,
+    );
   });
 
-  // Score trend
   if (analysisData.score !== undefined) {
     patterns.push(
-      `Code quality score: ${analysisData.score}/100 for ${language} (${new Date().toLocaleDateString()})`
+      `Developer ${userId} scored ${analysisData.score}/100 on ${language} code review on ${new Date().toLocaleDateString()}`,
     );
   }
 
-  return patterns.slice(0, 4); // cap at 4 patterns per review
+  return patterns.slice(0, 4);
 };
 
 // ─── Memory Summary for Frontend ─────────────────────────────────────────────
-/**
- * Returns a clean summary object ready for the React memory panel.
- * Call this after loadMemory() to format for the UI.
- */
 export const getMemorySummary = (memories, userId) => {
   if (!memories || memories.length === 0) {
     return {
       userId,
       hasMemory: false,
       insights: [],
-      message: "No patterns recorded yet. Start reviewing code to build your profile.",
+      message:
+        "No patterns recorded yet. Start reviewing code to build your profile.",
     };
   }
 
   return {
     userId,
     hasMemory: true,
-    insights: memories.slice(0, 8), // show max 8 in panel
+    insights: memories.slice(0, 8),
     totalMemories: memories.length,
     message: `${memories.length} pattern${memories.length !== 1 ? "s" : ""} remembered across your sessions`,
   };
 };
 
 // ─── Prompt Enrichment ────────────────────────────────────────────────────────
-/**
- * Injects past memory context into the AI prompt.
- * The model uses this to give more personalized, pattern-aware reviews.
- */
 export const buildMemoryContext = (memories) => {
   if (!memories || memories.length === 0) return "";
 

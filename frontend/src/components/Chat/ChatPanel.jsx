@@ -147,12 +147,13 @@ export default function ChatPanel({ isOpen, onClose, context, onClearContext, ed
       >
         {/* header */}
         <div style={{
-          height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 16px', borderBottom: '1px solid var(--border)', flexShrink: 0
+          height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 20px', borderBottom: '1px solid var(--border)', flexShrink: 0,
+          background: 'var(--surface)', zIndex: 10
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <MessageCircle size={16} color="var(--accent)" />
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Ask Refyn</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <MessageCircle size={18} color="var(--accent)" />
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>Ask Refyn</span>
           </div>
           <button onClick={onClose} style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none' }}>
             <X size={16} />
@@ -224,10 +225,11 @@ export default function ChatPanel({ isOpen, onClose, context, onClearContext, ed
           {messages.map((msg, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
               <div style={{
-                maxWidth: '85%', padding: '8px 12px', fontSize: 13, lineHeight: 1.55,
-                borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                maxWidth: '85%', padding: '10px 14px', fontSize: 13, lineHeight: 1.6,
+                borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                 background: msg.role === 'user' ? 'var(--accent)' : 'var(--surface-high)',
-                color: 'var(--text)'
+                color: msg.role === 'user' ? '#ffffff' : 'var(--text)',
+                boxShadow: msg.role === 'user' ? '0 4px 12px var(--accent-glow)' : '0 2px 8px rgba(0,0,0,0.04)'
               }}>
                 <MessageContent text={msg.content} />
               </div>
@@ -251,7 +253,10 @@ export default function ChatPanel({ isOpen, onClose, context, onClearContext, ed
         </div>
 
         {/* input area */}
-        <div style={{ borderTop: '1px solid var(--border)', padding: 12, flexShrink: 0 }}>
+        <div style={{ 
+          padding: '16px 20px', flexShrink: 0, background: 'var(--surface)',
+          boxShadow: '0 -10px 30px rgba(0,0,0,0.05)', zIndex: 10
+        }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
             <textarea
               ref={inputRef}
@@ -263,26 +268,30 @@ export default function ChatPanel({ isOpen, onClose, context, onClearContext, ed
               placeholder="Ask anything about your code..."
               rows={1}
               style={{
-                flex: 1, resize: 'none', padding: '8px 12px', fontSize: 13,
+                flex: 1, resize: 'none', padding: '12px 16px', fontSize: 13,
                 background: 'var(--surface-high)', border: '1px solid var(--border)',
-                borderRadius: 8, color: 'var(--text)', outline: 'none',
+                borderRadius: 20, color: 'var(--text)', outline: 'none',
                 fontFamily: 'Inter,sans-serif', lineHeight: 1.5,
-                maxHeight: 80, overflowY: 'auto'
+                maxHeight: 120, overflowY: 'auto',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
               }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
               onInput={e => {
                 e.target.style.height = 'auto';
-                e.target.style.height = Math.min(e.target.scrollHeight, 80) + 'px';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
               }}
             />
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim() || loading}
               style={{
-                width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+                width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
                 background: input.trim() && !loading ? 'var(--accent)' : 'var(--surface-high)',
                 border: 'none', cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 150ms'
+                transition: 'all 150ms ease',
+                boxShadow: input.trim() && !loading ? '0 4px 12px var(--accent-glow)' : 'none'
               }}
             >
               <Send size={15} color={input.trim() && !loading ? 'white' : 'var(--text-muted)'} />
@@ -302,13 +311,13 @@ export default function ChatPanel({ isOpen, onClose, context, onClearContext, ed
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             onClick={onClose}
             style={{
-              position: 'fixed', bottom: 24, right: 24, width: 52, height: 52, borderRadius: '50%',
+              position: 'fixed', bottom: 32, right: 32, width: 60, height: 60, borderRadius: '50%',
               background: 'var(--accent)', border: 'none', cursor: 'pointer', zIndex: 150,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 20px var(--accent-glow)'
+              boxShadow: '0 8px 30px var(--accent-glow)'
             }}
           >
-            <MessageCircle size={22} color="white" />
+            <MessageCircle size={26} color="#ffffff" />
             {hasUnread && (
               <span style={{
                 position: 'absolute', top: 4, right: 4, width: 10, height: 10,

@@ -29,7 +29,7 @@ export default function App() {
   const [activeMode, setActiveMode] = useState("Review");
   const [activeSideTab, setActiveSideTab] = useState("files");
   const [modelMode, setModelMode] = useState("auto");
-  const [selectedModel, setSelectedModel] = useState("gemini");
+  const [selectedModel, setSelectedModel] = useState("openrouter");
   const [offline, setOffline] = useState(false);
 
   /* ─── Code state ─── */

@@ -186,7 +186,7 @@ export default function SidebarNew({
         </div>
 
         {/* Model statuses */}
-        <ModelDot name="Gemini 2.0" status={modelStatuses.gemini} />
+        <ModelDot name="OpenRouter" status={modelStatuses.openrouter} />
         <ModelDot name="Groq Llama" status={modelStatuses.llama} />
         <ModelDot name="Mixtral" status={modelStatuses.mixtral} />
         <ModelDot name="Qwen2.5" status={modelStatuses.qwen} />

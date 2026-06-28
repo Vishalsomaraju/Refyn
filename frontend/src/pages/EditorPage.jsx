@@ -22,21 +22,7 @@ import { getStateFromURL, pushStateToURL } from '../utils/urlState';
 import { exportReport } from '../utils/exportReport';
 import { FolderOpen } from 'lucide-react';
 
-const DEFAULT_CODE = `# Welcome to Refyn
-# Write or paste your code here, then click ⚡ Analyze
-
-def fibonacci(n):
-    if n <= 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return fibonacci(n-1) + fibonacci(n-2)
-
-# Try analyzing this code to find performance issues!
-result = fibonacci(35)
-print(f"Fibonacci(35) = {result}")
-`;
+const DEFAULT_CODE = '';
 
 /**
  * Robustly replaces a structural block of code ignoring all whitespace/indentation differences.
@@ -96,7 +82,7 @@ export default function EditorPage() {
   const [activeMode, setActiveMode] = useState('Analyze');
   const [routingMode, setRoutingMode] = useState('auto');
   const [modelStatuses, setModelStatuses] = useState({
-    llama: 'online', mixtral: 'online', qwen: 'online',
+    openrouter: 'online', llama: 'online', mixtral: 'online', qwen: 'online',
   });
   const [files, setFiles] = useState([
     { name: 'main.py', language: 'python', content: DEFAULT_CODE },
@@ -180,9 +166,9 @@ export default function EditorPage() {
   /* ─── Offline mode ─── */
   useEffect(() => {
     if (routingMode === 'offline') {
-      setModelStatuses({ llama: 'idle', mixtral: 'idle', qwen: 'online' });
+      setModelStatuses({ openrouter: 'idle', llama: 'idle', mixtral: 'idle', qwen: 'online' });
     } else {
-      setModelStatuses({ llama: 'online', mixtral: 'online', qwen: 'online' });
+      setModelStatuses({ openrouter: 'online', llama: 'online', mixtral: 'online', qwen: 'online' });
     }
   }, [routingMode]);
 
@@ -191,7 +177,7 @@ export default function EditorPage() {
     // Always use the latest code from the ref, not the stale closure
     analyze(codeRef.current, language, {
       modelMode: routingMode,
-      selectedModel: 'gemini',
+      selectedModel: 'openrouter',
       offline: routingMode === 'offline',
     });
   }, [analyze, language, routingMode]);

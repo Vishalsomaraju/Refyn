@@ -113,3 +113,50 @@ Return ONLY this JSON structure, no other text:
 
   return { success: false, error: "All OpenRouter models failed" };
 };
+
+export const fixWithOpenRouter = async (systemPrompt, userPrompt) => {
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error("OpenRouter API key not set");
+  }
+
+  // Try free models in order
+  for (const model of FREE_MODELS) {
+    try {
+      console.log(`[OpenRouter Fix] Trying model: ${model}`);
+      const res = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "HTTP-Referer": "https://refyn.dev",
+          "X-Title": "Refyn Code Review",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          temperature: 0.1,
+          max_tokens: 4096,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
+      }
+
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content;
+      
+      if (text?.trim()) {
+        console.log(`[OpenRouter Fix] Success with ${model}`);
+        return { fixedCode: text, usedModel: `openrouter` };
+      }
+    } catch (err) {
+      console.warn(`[OpenRouter Fix] ${model} failed: ${err.message}`);
+    }
+  }
+
+  throw new Error("All OpenRouter models failed for fix");
+};
