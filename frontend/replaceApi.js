@@ -18,22 +18,23 @@ walkDir(path.join(__dirname, 'src'), (filePath) => {
     let content = fs.readFileSync(filePath, 'utf8');
     let original = content;
 
-    // Replace single quoted instances: 'http://localhost:5000/something' -> `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/something`
+    // Replace the VITE_API_URL fallback with a window.location check
+    const newBase = "${window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://refyn-production-5a6b.up.railway.app'}";
+    
+    content = content.replace(
+      /\$\{import\.meta\.env\.VITE_API_URL\s*\|\|\s*'http:\/\/localhost:5000'\}/g,
+      newBase
+    );
+
+    // Also just in case there are still raw localhost strings
     content = content.replace(
       /'http:\/\/localhost:5000([^']+)'/g,
-      "`\\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}$1`"
+      "`" + newBase + "$1`"
     );
 
-    // Replace backtick instances: `http://localhost:5000/something/${var}` -> `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/something/${var}`
     content = content.replace(
       /`http:\/\/localhost:5000([^`]+)`/g,
-      "`\\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}$1`"
-    );
-
-    // Replace double quoted instances if any
-    content = content.replace(
-      /"http:\/\/localhost:5000([^"]+)"/g,
-      "`\\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}$1`"
+      "`" + newBase + "$1`"
     );
 
     if (content !== original) {

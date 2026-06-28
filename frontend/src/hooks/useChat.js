@@ -12,7 +12,7 @@ export function useChat() {
     setError(null);
 
     try {
-      const response = await fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat`, {
+      const response = await fetch(`\${window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://refyn-production-5a6b.up.railway.app'}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -8,7 +8,7 @@ export function useSmartFix() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/smartfix`, {
+      const response = await fetch(`\${window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://refyn-production-5a6b.up.railway.app'}/api/smartfix`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

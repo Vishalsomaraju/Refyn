@@ -29,7 +29,7 @@ export default function LandingPage() {
       return;
     }
     const timer = setTimeout(() => {
-      fetch(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/memory/${username}`)
+      fetch(`\${window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://refyn-production-5a6b.up.railway.app'}/api/memory/${username}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
